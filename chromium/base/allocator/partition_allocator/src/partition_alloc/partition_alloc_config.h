@@ -253,8 +253,8 @@ constexpr bool kUseLazyCommit = false;
 #define PA_CONFIG_IS_NONCLANG_MSVC() 0
 #endif
 
-static_assert(__cplusplus >= 202002L,
-              "PartitionAlloc targets C++20 or higher.");
+static_assert(__cplusplus >= 201709L,
+              "PartitionAlloc targets C++17 or higher.");
 
 // Named pass-through that determines whether or not PA should generally
 // enforce that `SlotStart` instances are in fact slot starts.
