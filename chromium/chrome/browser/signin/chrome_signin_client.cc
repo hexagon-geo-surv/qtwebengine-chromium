@@ -39,7 +39,9 @@
 #include "chrome/browser/signin/identity_manager_factory.h"
 #include "chrome/browser/signin/signin_hats_util.h"
 #include "chrome/browser/signin/signin_util.h"
+#if !BUILDFLAG(IS_QTWEBENGINE)
 #include "chrome/browser/ui/hats/survey_config.h"
+#endif
 #include "chrome/common/buildflags.h"
 #include "chrome/common/channel_info.h"
 #include "chrome/common/pref_names.h"
@@ -171,7 +173,7 @@ signin_metrics::ProfileSignout kAlwaysAllowedSignoutSources[] = {
 std::string HatsSurveyTriggerForAccessPoint(
     signin_metrics::AccessPoint access_point) {
   switch (access_point) {
-#if BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_WIN)
+#if (BUILDFLAG(IS_MAC) || BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_WIN)) && !BUILDFLAG(IS_QTWEBENGINE)
     case signin_metrics::AccessPoint::kAddressBubble:
       return kHatsSurveyTriggerIdentityAddressBubbleSignin;
     case signin_metrics::AccessPoint::kAvatarBubbleSignIn:
@@ -221,6 +223,7 @@ void ChromeSigninClient::
 // static
 void ChromeSigninClient::MaybeAddUserToUnoBookmarksSyntheticFieldTrial(
     std::string_view synthetic_field_trial_group_pref) {
+#if !BUILDFLAG(IS_QTWEBENGINE)
   // Do not register groups that do not override the main feature.
   base::FieldTrial* field_trial = base::FeatureList::GetFieldTrial(
       switches::kSyncEnableBookmarksInTransportMode);
@@ -236,10 +239,12 @@ void ChromeSigninClient::MaybeAddUserToUnoBookmarksSyntheticFieldTrial(
   local_prefs->SetString(synthetic_field_trial_group_pref,
                          field_trial->GetGroupNameWithoutActivation());
   RegisterSyntheticTrialsFromPrefs();
+#endif
 }
 
 // static
 void ChromeSigninClient::RegisterSyntheticTrialsFromPrefs() {
+#if !BUILDFLAG(IS_QTWEBENGINE)
   PrefService* local_prefs =
       g_browser_process ? g_browser_process->local_state() : nullptr;
   if (!local_prefs) {
@@ -264,6 +269,7 @@ void ChromeSigninClient::RegisterSyntheticTrialsFromPrefs() {
         bookmarks_bubble_promo_shown_group_name,
         variations::SyntheticTrialAnnotationMode::kCurrentLog);
   }
+#endif
 }
 
 void ChromeSigninClient::DoFinalInit() {
@@ -452,11 +458,13 @@ void ChromeSigninClient::OnPrimaryAccountChanged(
         signin_metrics::AccessPoint access_point =
             event_details.GetSetPrimaryAccountAccessPoint().value();
 
+#if !BUILDFLAG(IS_QTWEBENGINE)
         if (consent_level == signin::ConsentLevel::kSignin) {
           std::string trigger = HatsSurveyTriggerForAccessPoint(access_point);
           signin::LaunchSigninHatsSurveyForProfile(
               trigger, profile_, /*defer_if_no_browser=*/true);
         }
+#endif
 
 #if !BUILDFLAG(IS_CHROMEOS)
         RecordOpenTabCount(access_point, consent_level);
@@ -471,18 +479,18 @@ void ChromeSigninClient::OnPrimaryAccountChanged(
   }
 }
 
+#if BUILDFLAG(ENABLE_BOUND_SESSION_CREDENTIALS)
 std::unique_ptr<signin::BoundSessionOAuthMultiLoginDelegate>
 ChromeSigninClient::CreateBoundSessionOAuthMultiloginDelegate() const {
-#if BUILDFLAG(ENABLE_BOUND_SESSION_CREDENTIALS)
   if (BoundSessionCookieRefreshService* bound_session_cookie_refresh_service =
           BoundSessionCookieRefreshServiceFactory::GetForProfile(profile_);
       bound_session_cookie_refresh_service) {
     return std::make_unique<BoundSessionOAuthMultiLoginDelegateImpl>(
         bound_session_cookie_refresh_service->GetWeakPtr());
   }
-#endif  // BUILDFLAG(ENABLE_BOUND_SESSION_CREDENTIALS)
   return nullptr;
 }
+#endif  // BUILDFLAG(ENABLE_BOUND_SESSION_CREDENTIALS)
 
 SigninClient::SignoutDecision ChromeSigninClient::GetSignoutDecision(
     bool has_sync_account,
@@ -660,9 +668,11 @@ void ChromeSigninClient::ShowUserManager(const base::FilePath& profile_path) {
 }
 
 // static
+#if !BUILDFLAG(IS_QTWEBENGINE)
 void ChromeSigninClient::RegisterLocalStatePrefs(PrefRegistrySimple* registry) {
   registry->RegisterStringPref(
       kSigninFromBookmarksBubbleSyntheticTrialGroupNamePref, "");
   registry->RegisterStringPref(
       kBookmarksBubblePromoShownSyntheticTrialGroupNamePref, "");
 }
+#endif

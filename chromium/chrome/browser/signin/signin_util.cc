@@ -43,9 +43,11 @@
 #include "components/signin/public/identity_manager/account_managed_status_finder.h"
 #include "components/signin/public/identity_manager/accounts_mutator.h"
 #include "components/signin/public/identity_manager/tribool.h"
+#if !BUILDFLAG(IS_QTWEBENGINE)
 #include "components/sync/base/user_selectable_type.h"
 #include "components/sync/service/sync_service.h"
 #include "components/sync/service/sync_user_settings.h"
+#endif
 #include "content/public/browser/storage_partition.h"
 #include "google_apis/gaia/gaia_auth_util.h"
 #include "google_apis/gaia/gaia_constants.h"
@@ -381,7 +383,7 @@ std::string SignedInStateToString(SignedInState state) {
   }
 }
 
-#if BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)
+#if (BUILDFLAG(IS_LINUX) || BUILDFLAG(IS_MAC) || BUILDFLAG(IS_WIN)) && !BUILDFLAG(IS_QTWEBENGINE)
 bool ShouldShowHistorySyncOptinScreen(Profile& profile) {
   if (GetSignedInState(IdentityManagerFactory::GetForProfile(&profile)) !=
       signin_util::SignedInState::kSignedIn) {
