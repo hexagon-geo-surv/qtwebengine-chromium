@@ -2285,7 +2285,7 @@ void AuthenticationCredentialsContainer::GetForIdentity(
 
   mojom::blink::RpMode rp_mode = mojom::blink::RpMode::kPassive;
   auto v8_rp_mode = identity_options.mode();
-  rp_mode = mojo::ConvertTo<mojom::blink::RpMode>(v8_rp_mode);
+  rp_mode = mojo::TypeConverter<mojom::blink::RpMode, blink::V8IdentityCredentialRequestOptionsMode>::Convert(v8_rp_mode);
   if (rp_mode == mojom::blink::RpMode::kActive) {
     if (identity_provider_ptrs.size() > 1u) {
       resolver->Reject(MakeGarbageCollected<DOMException>(

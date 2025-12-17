@@ -539,12 +539,14 @@ void ProcessPrintQuality(
     WebPrinterAttributes* current_attributes) {
   if (new_attributes.print_quality_default) {
     current_attributes->setPrintQualityDefault(
-        mojo::ConvertTo<V8Quality>(*new_attributes.print_quality_default));
+        mojo::TypeConverter<V8Quality, blink::mojom::WebPrintQuality>::Convert(*new_attributes.print_quality_default));
   }
   if (!new_attributes.print_quality_supported.empty()) {
-    current_attributes->setPrintQualitySupported(
-        mojo::ConvertTo<Vector<V8Quality>>(
-            new_attributes.print_quality_supported));
+    blink::Vector<V8Quality> out;
+    out.reserve(new_attributes.print_quality_supported.size());
+    for (const auto& obj : new_attributes.print_quality_supported)
+      out.push_back(mojo::TypeConverter<V8Quality, blink::mojom::WebPrintQuality>::Convert(obj));
+    current_attributes->setPrintQualitySupported(std::move(out));
   }
 }
 
@@ -643,7 +645,7 @@ TypeConverter<blink::mojom::blink::WebPrintJobTemplateAttributesPtr,
   }
   if (pjt_attributes->hasPrintQuality()) {
     attributes->print_quality =
-        mojo::ConvertTo<MojomQuality>(pjt_attributes->printQuality());
+        mojo::TypeConverter<MojomQuality, decltype(pjt_attributes->printQuality())>::Convert(pjt_attributes->printQuality());
   }
   if (pjt_attributes->hasSides()) {
     attributes->sides = mojo::TypeConverter<MojomSides, V8Sides>::Convert(

@@ -12,6 +12,7 @@
 #include "third_party/blink/renderer/bindings/modules/v8/v8_authentication_extensions_client_inputs.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_payment_credential_instrument.h"
 #include "third_party/blink/renderer/bindings/modules/v8/v8_payment_entity_logo.h"
+#include "third_party/blink/renderer/bindings/modules/v8/v8_public_key_credential_parameters.h"
 #include "third_party/blink/renderer/modules/credentialmanagement/credential_manager_type_converters.h"
 #include "third_party/blink/renderer/platform/weborigin/kurl.h"
 #include "third_party/blink/renderer/platform/wtf/vector.h"
@@ -61,14 +62,16 @@ TypeConverter<payments::mojom::blink::SecurePaymentConfirmationRequestPtr,
 
   if (input->hasPaymentEntitiesLogos()) {
     output->payment_entities_logos =
-        ConvertTo<blink::Vector<payments::mojom::blink::PaymentEntityLogoPtr>>(
-            input->paymentEntitiesLogos());
+        mojo::TypeConverter<blink::Vector<payments::mojom::blink::PaymentEntityLogoPtr>,
+                            decltype(input->paymentEntitiesLogos())>::Convert(
+                                input->paymentEntitiesLogos());
   }
 
   if (input->hasBrowserBoundPubKeyCredParams()) {
-    output->browser_bound_pub_key_cred_params = ConvertTo<
-        blink::Vector<blink::mojom::blink::PublicKeyCredentialParametersPtr>>(
-        input->browserBoundPubKeyCredParams());
+    using FromT = blink::HeapVector<blink::Member<blink::PublicKeyCredentialParameters>>;
+    output->browser_bound_pub_key_cred_params =
+      mojo::TypeConverter<blink::Vector<blink::mojom::blink::PublicKeyCredentialParametersPtr>,
+      FromT>::Convert(input->browserBoundPubKeyCredParams());
   }
 
   output->show_opt_out = input->getShowOptOutOr(false);
